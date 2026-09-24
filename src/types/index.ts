@@ -4,9 +4,33 @@
 
 export type AnalysisMode = 'single' | 'grounding' | 'change' | 'fusion' | 'agent';
 
-export type DemoScene = 'intro' | 'single' | 'grounding' | 'change' | 'fusion' | 'agent' | 'evidence' | 'impact';
+export type DemoScene =
+  | 'intro'         // Scene 1: The Opening Hook (0:00 - 0:20)
+  | 'problem'       // Scene 2: Remote Sensing Analysis is Complex (0:20 - 0:45)
+  | 'overview'      // Scene 3: What is SatQuery AI? (0:45 - 1:10)
+  | 'architecture'  // Scene 4: Core Architecture (1:10 - 1:45)
+  | 'single'        // Scene 5: Single-Image Intelligence & Grounding (1:45 - 2:20)
+  | 'grounding'     // Auxiliary grounding view
+  | 'change'        // Scene 6: Bi-Temporal Change Analysis (2:20 - 3:00)
+  | 'fusion'        // Scene 7: Multimodal Optical-SAR Fusion (3:00 - 3:40)
+  | 'agent'         // Scene 8: Agentic AI Orchestration (3:40 - 4:15)
+  | 'evidence'      // Scene 9: Trust + Evidence (4:15 - 4:40)
+  | 'impact';       // Scene 10: Impact + Final Vision (4:40 - 5:00)
 
-export type NavTab = 'workspace' | 'analysis' | 'history' | 'reports';
+export interface VideoSceneConfig {
+  id: DemoScene;
+  sceneNumber: number;
+  title: string;
+  subtitle: string;
+  timeRange: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  voiceOver: string;
+  onScreenText: string;
+  keyVisual: string;
+  badge?: string;
+}
 
 export type ProcessingStage = {
   id: string;

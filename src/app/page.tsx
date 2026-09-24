@@ -3,77 +3,140 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { DemoScene } from '@/types';
-import { demoChapters } from '@/data/demoData';
+import {
+  videoScriptTimeline,
+  TOTAL_VIDEO_DURATION_SECONDS,
+  getSceneConfigByTime,
+} from '@/data/videoScriptData';
 import StarField from '@/components/layout/StarField';
 import TopNav from '@/components/layout/TopNav';
-import LandingScreen from '@/components/demo/LandingScreen';
 import DashboardView from '@/components/dashboard/DashboardView';
-import DemoControlBar from '@/components/demo/DemoControlBar';
+import AutoPlayController from '@/components/demo/AutoPlayController';
 
 export default function Home() {
   const [currentScene, setCurrentScene] = useState<DemoScene>('intro');
   const [presentationMode, setPresentationMode] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const sceneOrder: DemoScene[] = ['intro', 'single', 'grounding', 'change', 'fusion', 'agent', 'evidence', 'impact'];
+  const sceneOrder: DemoScene[] = [
+    'intro',
+    'problem',
+    'overview',
+    'architecture',
+    'single',
+    'change',
+    'fusion',
+    'agent',
+    'evidence',
+    'impact',
+  ];
 
+  // Jump to specific scene
   const goToScene = useCallback((scene: DemoScene) => {
     setCurrentScene(scene);
+    const config = videoScriptTimeline.find((s) => s.id === scene);
+    if (config) {
+      setElapsedSeconds(config.startTime);
+    }
   }, []);
 
+  // Jump to exact time
+  const seekTo = useCallback((seconds: number) => {
+    const clamped = Math.max(0, Math.min(seconds, TOTAL_VIDEO_DURATION_SECONDS));
+    setElapsedSeconds(clamped);
+    const config = getSceneConfigByTime(clamped);
+    if (config) {
+      setCurrentScene(config.id);
+    }
+  }, []);
+
+  // Next / Previous Scene
   const nextScene = useCallback(() => {
-    const idx = sceneOrder.indexOf(currentScene);
-    if (idx < sceneOrder.length - 1) {
-      setCurrentScene(sceneOrder[idx + 1]);
+    const activeConfig = getSceneConfigByTime(elapsedSeconds);
+    const idx = videoScriptTimeline.findIndex((s) => s.id === activeConfig.id);
+    if (idx < videoScriptTimeline.length - 1) {
+      const nextConfig = videoScriptTimeline[idx + 1];
+      seekTo(nextConfig.startTime);
     } else {
       setAutoPlay(false);
     }
-  }, [currentScene]);
+  }, [elapsedSeconds, seekTo]);
 
   const prevScene = useCallback(() => {
-    const idx = sceneOrder.indexOf(currentScene);
+    const activeConfig = getSceneConfigByTime(elapsedSeconds);
+    const idx = videoScriptTimeline.findIndex((s) => s.id === activeConfig.id);
     if (idx > 0) {
-      setCurrentScene(sceneOrder[idx - 1]);
+      const prevConfig = videoScriptTimeline[idx - 1];
+      seekTo(prevConfig.startTime);
+    } else {
+      seekTo(0);
     }
-  }, [currentScene]);
+  }, [elapsedSeconds, seekTo]);
 
-  // Auto-play logic
+  // Restart demo run
+  const resetDemo = useCallback(() => {
+    seekTo(0);
+    setAutoPlay(false);
+  }, [seekTo]);
+
+  // Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
+  // Automated 5-minute video playback runner
   useEffect(() => {
     if (autoPlay) {
+      const tickIntervalMs = 100;
       autoPlayTimerRef.current = setInterval(() => {
-        nextScene();
-      }, 12000); // 12 seconds per scene for ~96s total through 8 scenes
+        setElapsedSeconds((prev) => {
+          const next = prev + (tickIntervalMs / 1000) * playbackSpeed;
+          if (next >= TOTAL_VIDEO_DURATION_SECONDS) {
+            setAutoPlay(false);
+            return TOTAL_VIDEO_DURATION_SECONDS;
+          }
+          const config = getSceneConfigByTime(next);
+          if (config && config.id !== currentScene) {
+            setCurrentScene(config.id);
+          }
+          return next;
+        });
+      }, tickIntervalMs);
+    } else {
+      if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
     }
+
     return () => {
       if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
     };
-  }, [autoPlay, nextScene]);
+  }, [autoPlay, currentScene, playbackSpeed]);
 
-  // Elapsed timer for presentation mode
-  useEffect(() => {
-    if (presentationMode) {
-      setElapsedSeconds(0);
-      elapsedTimerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => {
-      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
-    };
-  }, [presentationMode]);
-
-  // Keyboard shortcuts
+  // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      const num = parseInt(e.key);
-      if (num >= 1 && num <= 8) {
-        const scene = sceneOrder[num - 1];
-        if (scene) goToScene(scene);
+      // 1 to 9, 0 jumps to Scene 1-10
+      if (e.key >= '1' && e.key <= '9') {
+        const idx = parseInt(e.key) - 1;
+        if (idx < videoScriptTimeline.length) {
+          seekTo(videoScriptTimeline[idx].startTime);
+        }
+        return;
+      }
+      if (e.key === '0') {
+        if (videoScriptTimeline.length >= 10) {
+          seekTo(videoScriptTimeline[9].startTime);
+        }
         return;
       }
 
@@ -83,90 +146,80 @@ export default function Home() {
           setAutoPlay((prev) => !prev);
           break;
         case 'ArrowRight':
+          e.preventDefault();
           nextScene();
           break;
         case 'ArrowLeft':
+          e.preventDefault();
           prevScene();
           break;
-        case 'Escape':
-          setPresentationMode(false);
+        case 'r':
+        case 'R':
+          resetDemo();
+          break;
+        case 'f':
+        case 'F':
+          toggleFullscreen();
           break;
         case 'p':
         case 'P':
           setPresentationMode((prev) => !prev);
+          break;
+        case 'Escape':
+          setPresentationMode(false);
+          setAutoPlay(false);
           break;
       }
     };
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [goToScene, nextScene, prevScene]);
+  }, [nextScene, prevScene, resetDemo, seekTo, toggleFullscreen]);
 
-  const formatTime = (s: number) => {
-    const min = Math.floor(s / 60).toString().padStart(2, '0');
-    const sec = (s % 60).toString().padStart(2, '0');
-    return `${min}:${sec}`;
-  };
+  // Compute current scene's sub-progress (0 to 1)
+  const activeSceneConfig = getSceneConfigByTime(elapsedSeconds);
+  const autoPlayProgress = Math.max(
+    0,
+    Math.min(1, (elapsedSeconds - activeSceneConfig.startTime) / activeSceneConfig.duration)
+  );
 
   return (
-    <main className="relative min-h-screen bg-[#050510] text-white overflow-hidden">
+    <main className="relative min-h-screen bg-[#050510] text-white overflow-hidden pb-20">
       <StarField />
 
-      {/* Top Navigation - hidden in presentation mode during intro */}
-      {!(presentationMode && currentScene === 'intro') && currentScene !== 'intro' && (
-        <TopNav
-          currentScene={currentScene}
-          presentationMode={presentationMode}
-          onTogglePresentation={() => setPresentationMode(!presentationMode)}
-        />
-      )}
+      {/* Top Navigation */}
+      <TopNav
+        currentScene={currentScene}
+        presentationMode={presentationMode}
+        onTogglePresentation={() => setPresentationMode(!presentationMode)}
+        autoPlay={autoPlay}
+        onToggleAutoPlay={() => setAutoPlay(!autoPlay)}
+        elapsedSeconds={elapsedSeconds}
+      />
 
-      {/* Presentation mode timer */}
-      {presentationMode && (
-        <div className="fixed top-4 right-4 z-[100] glass-panel px-4 py-2 text-sm font-mono flex items-center gap-3">
-          <span className="text-zinc-500">{formatTime(elapsedSeconds)}</span>
-          <span className="text-zinc-600">/</span>
-          <span className="text-zinc-500">05:00</span>
-          <div className="w-24 h-1 bg-zinc-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-cyan to-electric rounded-full transition-all duration-1000"
-              style={{ width: `${Math.min((elapsedSeconds / 300) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
+      {/* Dashboard View displaying current scene */}
+      <DashboardView
+        key="dashboard"
+        currentScene={currentScene}
+        onSceneChange={goToScene}
+        presentationMode={presentationMode}
+        autoPlayProgress={autoPlayProgress}
+      />
 
-      {/* Main Content */}
-      <AnimatePresence mode="wait">
-        {currentScene === 'intro' ? (
-          <LandingScreen
-            key="landing"
-            onStartDemo={() => goToScene('single')}
-            onExploreWorkflow={() => goToScene('agent')}
-            presentationMode={presentationMode}
-          />
-        ) : (
-          <DashboardView
-            key="dashboard"
-            currentScene={currentScene}
-            onSceneChange={goToScene}
-            presentationMode={presentationMode}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Demo Control Bar */}
-      {!presentationMode && (
-        <DemoControlBar
-          currentScene={currentScene}
-          onSceneChange={goToScene}
-          onPrev={prevScene}
-          onNext={nextScene}
-          autoPlay={autoPlay}
-          onToggleAutoPlay={() => setAutoPlay(!autoPlay)}
-          chapters={demoChapters as unknown as typeof demoChapters}
-        />
-      )}
+      {/* Master 5-Minute AutoPlay Controller */}
+      <AutoPlayController
+        currentScene={currentScene}
+        elapsedSeconds={elapsedSeconds}
+        isPlaying={autoPlay}
+        onTogglePlay={() => setAutoPlay(!autoPlay)}
+        onSeek={seekTo}
+        onSceneSelect={goToScene}
+        playbackSpeed={playbackSpeed}
+        onSpeedChange={setPlaybackSpeed}
+        onReset={resetDemo}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+      />
     </main>
   );
 }
