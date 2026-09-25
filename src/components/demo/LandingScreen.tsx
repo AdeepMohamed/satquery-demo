@@ -166,7 +166,7 @@ export default function LandingScreen({ onStartDemo, onExploreWorkflow, presenta
           <span className="w-1 h-1 bg-zinc-700 rounded-full" />
           <span>SPACE TECHNOLOGY</span>
           <span className="w-1 h-1 bg-zinc-700 rounded-full" />
-          <span>PROBLEM ASSASSINS</span>
+          <span>CODE FOR NATION</span>
         </motion.div>
       </motion.div>
 

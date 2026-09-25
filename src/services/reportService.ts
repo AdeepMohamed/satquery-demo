@@ -57,7 +57,7 @@ ${data.executionSteps.map((s, i) => `  ${String(i + 1).padStart(2, '0')}. ${s} �
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SIH 2026 | SIH26167 | Space Technology
-Problem Assassins
+Team: Code for Nation
 
 ╚══════════════════════════════════════════════════════════╝
   `.trim();

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SatQuery AI — Earth Observation Intelligence",
-  description: "An Interactive Vision-Language Assistant for Multimodal Remote Sensing Image Analysis through Text Queries. SIH 2026 | SIH26167 | Space Technology | Problem Assassins",
+  description: "An Interactive Vision-Language Assistant for Multimodal Remote Sensing Image Analysis through Text Queries. SIH 2026 | SIH26167 | Space Technology | Code for Nation",
   keywords: ["satellite", "remote sensing", "AI", "VQA", "change detection", "SAR", "optical", "earth observation"],
 };
 

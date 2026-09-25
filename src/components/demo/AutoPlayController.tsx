@@ -39,6 +39,52 @@ export default function AutoPlayController({
 }: Props) {
   const [showTeleprompter, setShowTeleprompter] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(!isPlaying);
+  const autoHideTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Sync visibility with play state: always hide immediately when playing starts, always show when paused
+  React.useEffect(() => {
+    if (isPlaying) {
+      setControlsVisible(false);
+      setIsExpanded(false);
+    } else {
+      setControlsVisible(true);
+      if (autoHideTimerRef.current) {
+        clearTimeout(autoHideTimerRef.current);
+      }
+    }
+  }, [isPlaying]);
+
+  // Clean up auto-hide timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
+    };
+  }, []);
+
+  // Keyboard shortcut: 'V' toggles teleprompter subtitles
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'v' || e.key === 'V') {
+        setShowTeleprompter((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Briefly reveal controls during playback when user moves mouse to the bottom edge
+  const revealControlsBriefly = () => {
+    if (!isPlaying) return;
+    setControlsVisible(true);
+    if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
+    autoHideTimerRef.current = setTimeout(() => {
+      if (isPlaying) {
+        setControlsVisible(false);
+      }
+    }, 2800);
+  };
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
@@ -56,6 +102,16 @@ export default function AutoPlayController({
 
   return (
     <>
+      {/* Subtle bottom edge sensor to temporarily reveal controls on mouse hover during playback */}
+      {isPlaying && !controlsVisible && (
+        <div
+          onMouseEnter={revealControlsBriefly}
+          onMouseMove={revealControlsBriefly}
+          className="fixed bottom-0 left-0 right-0 h-6 z-40 cursor-pointer"
+          title="Move mouse here to show controls (or press Space to pause)"
+        />
+      )}
+
       {/* Floating Live Voiceover Teleprompter / Subtitles Banner */}
       <AnimatePresence>
         {showTeleprompter && (
@@ -63,8 +119,8 @@ export default function AutoPlayController({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.4 }}
-            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4 pointer-events-auto"
+            transition={{ duration: 0.3 }}
+            className={`fixed ${!controlsVisible ? 'bottom-4' : 'bottom-20'} left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4 pointer-events-auto transition-all duration-300`}
           >
             <div className="glass-panel-glow p-4 rounded-2xl border-cyan/30 backdrop-blur-xl shadow-2xl relative">
               <div className="flex items-center justify-between mb-2">
@@ -109,11 +165,26 @@ export default function AutoPlayController({
         )}
       </AnimatePresence>
 
-      {/* Master Director Control Bar */}
+      {/* Master Director Control Bar — automatically slides down and hides during playback */}
       <motion.div
+        onMouseEnter={() => {
+          if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
+          setControlsVisible(true);
+        }}
+        onMouseLeave={() => {
+          if (isPlaying) {
+            autoHideTimerRef.current = setTimeout(() => {
+              setControlsVisible(false);
+            }, 800);
+          }
+        }}
         initial={{ y: 80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+        animate={{
+          y: controlsVisible ? 0 : 140,
+          opacity: controlsVisible ? 1 : 0,
+        }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+        style={{ pointerEvents: controlsVisible ? 'auto' : 'none' }}
         className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-3"
       >
         <div className="glass-panel p-2.5 rounded-2xl border-cyan/25 shadow-2xl backdrop-blur-xl flex flex-col gap-2">
@@ -154,7 +225,12 @@ export default function AutoPlayController({
             {/* Left: Play / Pause & Timecode */}
             <div className="flex items-center gap-2">
               <button
-                onClick={onTogglePlay}
+                onClick={() => {
+                  if (!isPlaying) {
+                    setControlsVisible(false);
+                  }
+                  onTogglePlay();
+                }}
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all shadow-md ${
                   isPlaying
                     ? 'bg-amber-400 text-black shadow-amber-400/30'

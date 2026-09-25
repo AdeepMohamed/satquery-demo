@@ -291,7 +291,7 @@ export default function Scene3Overview({ autoPlayProgress = 0 }: Props) {
           <span className="text-cyan font-bold">Explain with Evidence</span>
         </div>
         <div className="hidden sm:block text-zinc-400">
-          SIH26167 • Software • Problem Assassins
+          SIH26167 • Software • Code for Nation
         </div>
       </div>
     </div>

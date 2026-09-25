@@ -62,39 +62,102 @@ export default function Scene1Hook({ onStartDemo, autoPlayProgress = 0 }: Props)
             ID: SIH26167 • SPACE TECHNOLOGY
           </div>
           <div className="glass-panel px-3 py-1 text-zinc-400 text-[11px] font-mono tracking-wider">
-            TEAM: PROBLEM ASSASSINS
+            TEAM: CODE FOR NATION
           </div>
         </motion.div>
 
         {/* Central Dynamic Visual */}
-        <div className="relative w-full max-w-2xl h-72 md:h-80 rounded-2xl glass-panel-glow overflow-hidden mb-6 flex items-center justify-center">
-          {/* Stage 1: Orbiting Satellite & Earth Globe */}
+        <div className="relative w-full max-w-2xl h-72 md:h-84 rounded-2xl glass-panel-glow overflow-hidden mb-6 flex items-center justify-center">
+          {/* Stage 1: Photorealistic Earth & Orbiting Satellite */}
           <motion.div
             animate={{
-              opacity: stage === 1 ? 1 : stage === 2 ? 0.4 : 0.15,
+              opacity: stage === 1 ? 1 : stage === 2 ? 0.35 : 0.12,
               scale: stage >= 2 ? 1.15 : 1,
             }}
             transition={{ duration: 1 }}
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
           >
-            {/* Glowing Earth Globe */}
-            <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full bg-gradient-to-tr from-[#06203a] via-[#0d456e] to-[#06d6f2]/40 shadow-[0_0_80px_rgba(6,214,242,0.25)] border border-cyan/30 flex items-center justify-center overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_30%,rgba(255,255,255,0.2),transparent_70%)]" />
-              <Globe2 className="w-36 h-36 md:w-44 md:h-44 text-cyan/20 animate-pulse" />
-              {/* Scan beam */}
-              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan to-transparent animate-scan" />
+            {/* Photorealistic Earth Globe */}
+            <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden shadow-[0_0_90px_rgba(6,214,242,0.45),0_0_30px_rgba(59,130,246,0.3)] border border-cyan/40 flex items-center justify-center bg-black">
+              {/* Real NASA Blue Marble Earth Image with Continuous Slow Axial Spin */}
+              <motion.img
+                src="/demo/real-earth.jpg"
+                alt="Photorealistic Planet Earth"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
+                className="w-full h-full object-cover scale-105"
+              />
+
+              {/* Spherical Atmospheric Rim & Dark Side Shadow */}
+              <div
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  background:
+                    'radial-gradient(circle at 35% 30%, transparent 55%, rgba(6,214,242,0.25) 85%, rgba(6,214,242,0.6) 100%), linear-gradient(135deg, transparent 40%, rgba(0,0,0,0.85) 90%)',
+                }}
+              />
+
+              {/* Animated Atmospheric Scan Laser Beam */}
+              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan to-transparent animate-scan opacity-70" />
             </div>
 
-            {/* Orbiting Satellite Node */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-              className="absolute w-72 h-72 rounded-full"
-            >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-lg bg-surface-lighter border border-cyan/60 flex items-center justify-center shadow-lg shadow-cyan/40">
-                <Satellite className="w-4 h-4 text-cyan" />
-              </div>
-            </motion.div>
+            {/* Orbiting Satellite on Inclined 3D Orbital Plane */}
+            <div className="absolute w-72 h-72 md:w-80 md:h-80 pointer-events-none flex items-center justify-center">
+              {/* Orbital Ellipse Ring */}
+              <svg className="absolute w-full h-full" viewBox="0 0 320 320">
+                <ellipse
+                  cx="160"
+                  cy="160"
+                  rx="150"
+                  ry="65"
+                  fill="none"
+                  stroke="rgba(6,214,242,0.25)"
+                  strokeWidth="1.2"
+                  strokeDasharray="4 6"
+                  transform="rotate(-25 160 160)"
+                />
+              </svg>
+
+              {/* Rotating Satellite Node */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+                className="absolute w-full h-full flex items-center justify-center"
+                style={{ transform: 'rotate(-25deg)' }}
+              >
+                {/* Satellite Body positioned along orbit perimeter */}
+                <div
+                  className="absolute"
+                  style={{ top: '5px', left: '50%', transform: 'translateX(-50%) rotate(25deg)' }}
+                >
+                  <div className="flex flex-col items-center">
+                    {/* Realistic Satellite Construction */}
+                    <div className="relative flex items-center gap-1 p-1.5 rounded-lg bg-surface/90 border border-cyan/60 shadow-[0_0_20px_rgba(6,214,242,0.5)] backdrop-blur-md">
+                      {/* Left Solar Array */}
+                      <div className="w-4 h-2 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-sm border border-cyan/50 flex flex-col justify-between">
+                        <div className="w-full h-px bg-white/40" />
+                      </div>
+
+                      {/* Main Avionics Body */}
+                      <div className="w-3.5 h-3.5 bg-gradient-to-tr from-amber-500 to-amber-200 rounded-sm border border-amber-300 flex items-center justify-center shadow-inner">
+                        <div className="w-1 h-1 rounded-full bg-cyan animate-ping" />
+                      </div>
+
+                      {/* Right Solar Array */}
+                      <div className="w-4 h-2 bg-gradient-to-l from-cyan-400 to-blue-600 rounded-sm border border-cyan/50 flex flex-col justify-between">
+                        <div className="w-full h-px bg-white/40" />
+                      </div>
+                    </div>
+
+                    {/* Sensor Beam fanning down towards Earth */}
+                    <div className="w-0.5 h-6 bg-gradient-to-b from-cyan to-transparent animate-pulse" />
+                    <span className="text-[8px] font-mono text-cyan bg-black/80 px-1.5 py-0.5 rounded border border-cyan/30 mt-0.5">
+                      SENTINEL-2A
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Stage 2 & 3: High-Res Satellite Surface Ingestion */}

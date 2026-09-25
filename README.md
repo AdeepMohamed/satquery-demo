@@ -2,7 +2,7 @@
 
 > **An Interactive Vision-Language Assistant for Multimodal Remote Sensing Image Analysis through Text Queries**
 
-**SIH 2026 | SIH26167 | Space Technology | Team: Problem Assassins**
+**SIH 2026 | SIH26167 | Space Technology | Team: Code for Nation**
 
 ---
 

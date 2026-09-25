@@ -130,7 +130,7 @@ export default function ImpactScene({ autoPlayProgress }: Props) {
               { label: 'SIH 2026', glow: false },
               { label: 'SIH26167', glow: false },
               { label: 'Space Technology', glow: true },
-              { label: 'Problem Assassins', glow: true },
+              { label: 'Code for Nation', glow: true },
             ].map((badge) => (
               <div
                 key={badge.label}

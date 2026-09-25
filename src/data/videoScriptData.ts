@@ -150,7 +150,7 @@ export const videoScriptTimeline: VideoSceneConfig[] = [
     voiceOver:
       'SatQuery AI is designed to make advanced remote sensing analysis more accessible through natural language. Its multimodal architecture can support applications across agriculture, disaster response, urban development, forestry, water resources, and environmental monitoring. Our vision is simple: transform satellite imagery from data that must be interpreted manually into information that can be queried, explained, and explored interactively. SatQuery AI — ask the image, understand the Earth.',
     onScreenText:
-      'SATQUERY AI — Ask the Image. Understand the Earth.\nSIH 2026 — SIH26167 | Space Technology | Team: Problem Assassins',
+      'SATQUERY AI — Ask the Image. Understand the Earth.\nSIH 2026 — SIH26167 | Space Technology | Team: Code for Nation',
     keyVisual: '6 Domain Impact Showcase → Cinematic Finale & SIH 2026 Credentials',
     badge: 'SIH Grand Finale',
   },
